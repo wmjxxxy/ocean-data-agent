@@ -1,0 +1,60 @@
+{"id":"d01","question":"比较CMIP6和EN4在1000m的Bias和RMSE","expected_route":"data","expected_tool":"compare_datasets","depth":1000,"tags":["basic"]}
+{"id":"d02","question":"EN4在500m的全球平均声速是多少","expected_route":"data","expected_tool":"calculate_statistics","depth":500,"tags":["basic"]}
+{"id":"d03","question":"画一下ORAS5在1000m的声速分布","expected_route":"data","expected_tool":"plot_map","depth":1000,"tags":["basic"]}
+{"id":"d04","question":"画一下1000m Bias空间分布","expected_route":"data","expected_tool":"plot_bias_map","depth":1000,"tags":["basic"]}
+{"id":"d05","question":"分析7000m声速","expected_route":"data","expected_error":"depth_out_of_range","tags":["exception"]}
+{"id":"d06","question":"分析chlorophyll","expected_route":"data","expected_error":"variable_not_found","tags":["exception"]}
+{"id":"d07","question":"比较CMIP6和EN4在100、500、1000、2000m的声速差异，哪个深度RMSE最大","expected_route":"data","expected_tool":"compare_datasets","multi_depth":true,"tags":["multi_step"]}
+{"id":"d08","question":"计算1000m Bias","expected_route":"data","expected_tool":"compare_datasets","tags":["hard"]}
+{"id":"d09","question":"查看当前EN4文件有哪些变量","expected_route":"data","expected_tool":"inspect_dataset","tags":["hard"]}
+{"id":"d10","question":"用PCHIP把这个数据插到500m","expected_route":"data","tags":["hard"]}
+{"id":"d11","question":"提取CMIP6在2000m的声速场摘要","expected_route":"data","expected_tool":"extract_depth","depth":2000,"tags":["basic"]}
+{"id":"d12","question":"ORAS5在100m的std是多少","expected_route":"data","expected_tool":"calculate_statistics","depth":100,"tags":["basic"]}
+{"id":"d13","question":"比较CMIP6相对ORAS5在500m的一致性","expected_route":"data","expected_tool":"compare_datasets","depth":500,"tags":["basic"]}
+{"id":"d14","question":"画出EN4在500m的空间分布图","expected_route":"data","expected_tool":"plot_map","depth":500,"tags":["basic"]}
+{"id":"d15","question":"绘制CMIP6减EN4在1000m的偏差图","expected_route":"data","expected_tool":"plot_bias_map","depth":1000,"tags":["basic"]}
+{"id":"d16","question":"分析10000m层声速","expected_route":"data","expected_error":"depth_out_of_range","tags":["exception"]}
+{"id":"d17","question":"计算叶绿素浓度","expected_route":"data","expected_error":"variable_not_found","tags":["exception"]}
+{"id":"d18","question":"inspect一下ORAS5数据集结构","expected_route":"data","expected_tool":"inspect_dataset","tags":["basic"]}
+{"id":"d19","question":"CMIP6和EN4在5m差多少","expected_route":"data","expected_tool":"compare_datasets","depth":5,"tags":["basic"]}
+{"id":"d20","question":"统计EN4 1000m声速的min和max","expected_route":"data","expected_tool":"calculate_statistics","depth":1000,"tags":["basic"]}
+{"id":"d21","question":"找出RMSE最大的深度并画该深度Bias图","expected_route":"data","expected_tool":"compare_datasets","multi_depth":true,"tags":["multi_step","hard"]}
+{"id":"d22","question":"把EN4 1000m声速画出来","expected_route":"data","expected_tool":"plot_map","tags":["basic"]}
+{"id":"d23","question":"计算CMIP6相对EN4在2000m的RMSE","expected_route":"data","expected_tool":"compare_datasets","depth":2000,"tags":["basic"]}
+{"id":"d24","question":"读取EN4有哪些维度","expected_route":"data","expected_tool":"inspect_dataset","tags":["hard"]}
+{"id":"d25","question":"分析温度变量thetao","expected_route":"data","expected_error":"variable_not_found","tags":["exception"]}
+{"id":"k01","question":"为什么声道轴搜索范围设置为100–3000m？","expected_route":"knowledge","expected_source":"sound_channel.md","tags":["basic"]}
+{"id":"k02","question":"PCHIP为什么适合垂向插值？","expected_route":"knowledge","expected_source":"interpolation.md","tags":["basic"]}
+{"id":"k03","question":"EN4和ORAS5在评价里分别起什么作用？","expected_route":"knowledge","expected_source":"datasets.md","tags":["basic"]}
+{"id":"k04","question":"Bias和RMSE分别衡量什么？能否仅凭声速Bias断定温度偏高？","expected_route":"knowledge","expected_source":"cmip6_method.md","tags":["basic"]}
+{"id":"k05","question":"声道轴识别用了什么方法？三点二次拟合做什么？","expected_route":"knowledge","expected_source":"sound_channel.md","tags":["basic"]}
+{"id":"k06","question":"PCHIP是什么？","expected_route":"knowledge","expected_source":"interpolation.md","tags":["hard"]}
+{"id":"k07","question":"EN4有哪些数据？","expected_route":"knowledge","expected_source":"datasets.md","tags":["hard"]}
+{"id":"k08","question":"为什么1000m Bias最大？","expected_route":"knowledge","expected_source":"cmip6_method.md","tags":["hard"]}
+{"id":"k09","question":"什么是声道轴？","expected_route":"knowledge","expected_source":"sound_channel.md","tags":["basic"]}
+{"id":"k10","question":"WOA102是什么？为什么要统一到该垂向层？","expected_route":"knowledge","expected_source":"interpolation.md","tags":["basic"]}
+{"id":"k11","question":"MME怎么定义？为什么先算声速再平均？","expected_route":"knowledge","expected_source":"datasets.md","tags":["basic"]}
+{"id":"k12","question":"声道轴有效性条件有哪些？0.5m/s对比度是什么意思？","expected_route":"knowledge","expected_source":"sound_channel.md","tags":["basic"]}
+{"id":"k13","question":"TEOS-10/GSW在本研究中用来做什么？","expected_route":"knowledge","expected_source":"interpolation.md","tags":["basic"]}
+{"id":"k14","question":"气候态评估为什么选1995–2014？","expected_route":"knowledge","expected_source":"datasets.md","tags":["basic"]}
+{"id":"k15","question":"空间相关系数高是否意味着没有系统性偏差？","expected_route":"knowledge","expected_source":"cmip6_method.md","tags":["basic"]}
+{"id":"k16","question":"为什么近表层不从0m开始搜索声道轴？","expected_route":"knowledge","expected_source":"sound_channel.md","tags":["basic"]}
+{"id":"k17","question":"水平插值用的什么方法？","expected_route":"knowledge","expected_source":"interpolation.md","tags":["basic"]}
+{"id":"k18","question":"一共选取了多少个CMIP6模式？选取原则是什么？","expected_route":"knowledge","expected_source":"datasets.md","tags":["basic"]}
+{"id":"k19","question":"Mackenzie和UNESCO公式敏感性试验的主要结论是什么？","expected_route":"knowledge","expected_source":"interpolation.md","tags":["basic"]}
+{"id":"k20","question":"MME相对EN4在1000m大约Bias和RMSE是多少？评价口径如何表述？","expected_route":"knowledge","expected_source":"cmip6_method.md","tags":["basic"]}
+{"id":"k21","question":"声道轴深度变化能否只用单一深度温盐解释？","expected_route":"knowledge","expected_source":"sound_channel.md","tags":["basic"]}
+{"id":"k22","question":"ORAS5为什么适合做对照参考？","expected_route":"knowledge","expected_source":"datasets.md","tags":["basic"]}
+{"id":"k23","question":"面积加权cos(lat)在评价里起什么作用？","expected_route":"knowledge","expected_source":"cmip6_method.md","tags":["basic"]}
+{"id":"k24","question":"三点二次拟合失败时怎么处理？","expected_route":"knowledge","expected_source":"sound_channel.md","tags":["basic"]}
+{"id":"k25","question":"数据处理顺序是先水平还是先垂向？","expected_route":"knowledge","expected_source":"interpolation.md","tags":["basic"]}
+{"id":"h01","question":"为什么比较CMIP6和EN4时要用面积加权？","expected_route":"knowledge","expected_source":"cmip6_method.md","tags":["hard"]}
+{"id":"h02","question":"比较一下CMIP6和EN4在1000m","expected_route":"data","expected_tool":"compare_datasets","tags":["hard"]}
+{"id":"h03","question":"声道轴100到3000米是怎么定的","expected_route":"knowledge","expected_source":"sound_channel.md","tags":["hard"]}
+{"id":"h04","question":"请计算EN4深度范围内有哪些可用层","expected_route":"data","expected_tool":"inspect_dataset","tags":["hard"]}
+{"id":"h05","question":"Bias含义是什么","expected_route":"knowledge","expected_source":"cmip6_method.md","tags":["hard"]}
+{"id":"h06","question":"画Bias图并给出1000m的RMSE","expected_route":"data","expected_tool":"plot_bias_map","tags":["hard"]}
+{"id":"h07","question":"EN4资料适合做什么参考","expected_route":"knowledge","expected_source":"datasets.md","tags":["hard"]}
+{"id":"h08","question":"对EN4做inspect","expected_route":"data","expected_tool":"inspect_dataset","tags":["hard"]}
+{"id":"hy01","question":"计算1000m Bias并解释方法含义","expected_route":"hybrid","tags":["hybrid","hard"]}
+{"id":"hy02","question":"比较CMIP6和EN4在1000m的差异，并结合评价方法说明如何解读","expected_route":"hybrid","tags":["hybrid","hard"]}

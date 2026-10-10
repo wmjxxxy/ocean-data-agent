@@ -1,0 +1,13 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+outputs/figures/*.png
+logs/*.jsonl
+logs/*.log
+rag_db/
+models/bge-small-zh-v1.5/
+.DS_Store
+.idea/
+.vscode/
