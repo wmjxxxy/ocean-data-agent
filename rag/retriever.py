@@ -22,12 +22,18 @@ def _model():
 
 @lru_cache(maxsize=1)
 def _collection():
+    from rag.ingest import main as build_knowledge_base
+
     if not DB_DIR.exists():
-        raise FileNotFoundError(
-            f"未找到向量库 {DB_DIR}。请先运行: python rag/ingest.py"
-        )
+        build_knowledge_base()
+
     client = chromadb.PersistentClient(path=str(DB_DIR))
-    return client.get_collection(COLLECTION)
+
+    try:
+        return client.get_collection(COLLECTION)
+    except Exception:
+        build_knowledge_base()
+        return client.get_collection(COLLECTION)
 
 
 def retrieve(question: str, top_k: int = 4) -> list[dict[str, Any]]:
