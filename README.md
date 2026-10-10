@@ -1,151 +1,343 @@
-# 海洋科研数据分析智能体
+# 海洋科研数据分析智能体（Ocean Data Agent）
 
-自然语言驱动的海洋 NetCDF 分析 Agent（MVP / POC）。
+基于大语言模型（LLM）、Tool Calling 与检索增强生成（RAG）的海洋科研数据分析智能体，支持通过自然语言完成 NetCDF 数据查询、统计分析、模型对比、空间可视化及科研知识问答。
 
-**流程：** 用户提问 → LLM 理解意图 → Tool Calling 选择工具 → Python/xarray 计算 → 日志记录 → 中文结论（可附图）
+**🌐 [在线体验 Demo](https://ocean-data-agent-fi4iarm2xxy9rf8ahpnwz9.streamlit.app)**
 
-## 功能范围（领域智能体）
+**技术栈：** Python · Streamlit · DeepSeek API · Tool Calling · RAG · ChromaDB · Sentence Transformers · xarray · NetCDF4 · NumPy · Matplotlib
 
-面向海洋声速气候态数据，支持：
+---
 
-- 数据集检查
-- 指定深度提取与统计
-- CMIP6 / EN4 / ORAS5 对比（Bias / RMSE / 空间相关）
-- 单场空间分布与 Bias 空间分布绘图
-- 深度/变量异常友好提示
-- 执行日志追溯（用户问题、工具、参数、结果、耗时、状态）
-- LLM 结论科学表述约束（避免仅凭声速 Bias 断言温盐机制）
+## 1. 项目概述
 
-样本深度：`5 / 100 / 500 / 1000 / 2000 m`  
-主变量：`ssp`（声速，m/s）
+本项目面向海洋声速数据分析场景，将大语言模型的自然语言理解能力与 Python 科学计算工具结合，实现从用户问题到计算结果、分析结论及可视化图表的自动化处理。
 
-## 项目结构
+系统采用 Router 进行任务路由，根据问题类型选择数值分析（Data）、知识检索（Knowledge）或混合分析（Hybrid）路径。
+
+**核心设计思想：LLM 负责理解与推理，Python 工具负责实际数值计算，RAG 提供专业知识依据。**
+
+## 2. 系统架构
+
+```text
+                 用户自然语言输入
+                        |
+                        v
+                  Streamlit UI
+                        |
+                        v
+                   Router 路由
+                        |
+          +-------------+-------------+
+          |             |             |
+          v             v             v
+        Data        Knowledge       Hybrid
+          |             |             |
+          v             v             |
+     LLM Tool Calling  RAG 检索       |
+          |             |             |
+          v             v             |
+     Python/xarray   ChromaDB         |
+          |             |             |
+          v             v             |
+     NetCDF 分析     知识片段召回      |
+          |             |             |
+          +-------------+-------------+
+                        |
+                        v
+                 LLM 结果整理
+                        |
+                        v
+              分析结论 / 引用 / 图表
+                        |
+                        v
+               Streamlit 页面展示
+```
+
+系统支持多轮工具调用，能够将实际工具执行结果返回给大模型，再生成最终分析结论。
+
+## 3. 核心功能
+
+### 3.1 自然语言任务解析
+
+用户通过自然语言描述分析需求，系统自动判断任务类型并选择相应执行路径。
+
+- **Data：** NetCDF 数据读取、统计计算、模型比较及绘图。
+- **Knowledge：** 基于 RAG 的海洋科研知识检索与问答。
+- **Hybrid：** 结合数值分析结果和知识检索内容生成综合回答。
+
+### 3.2 Tool Calling 数值分析
+
+封装 Python/xarray 科学计算工具，通过大模型 Function Calling 自动选择工具并传入参数。
+
+支持：
+
+- 数据集变量、维度和深度信息查询
+- 指定深度数据提取
+- 均值、标准差、最大值和最小值计算
+- 多数据集 Bias、RMSE、空间相关系数计算
+- 多深度声速差异分析
+- 单场空间分布和 Bias 空间分布绘图
+
+**数值计算由 Python 工具执行，大模型不直接生成未经计算的统计指标。**
+
+### 3.3 海洋数据处理
+
+当前演示支持以下数据集：
+
+| 数据集 | 类型 |
+|---|---|
+| EN4 | 海洋分析数据 |
+| ORAS5 | 海洋再分析数据 |
+| CMIP6（MME） | 多模式集合数据 |
+
+- 主变量：`ssp`（声速，m/s）
+- 样本深度：5、100、500、1000、2000 m
+- 数据格式：NetCDF
+
+项目使用小型样本数据进行功能演示。
+
+### 3.4 RAG 科研知识问答
+
+采用 Sentence Transformers 生成文本向量，使用 ChromaDB 构建本地向量知识库，实现专业知识检索与回答生成。
+
+知识文档位于 `rag/knowledge/`，主要覆盖：
+
+| 文档 | 知识主题 |
+|---|---|
+| `sound_channel.md` | 声道轴识别及搜索范围 |
+| `interpolation.md` | PCHIP 垂向插值、WOA、TEOS-10 |
+| `datasets.md` | CMIP6、EN4、ORAS5 数据集 |
+| `cmip6_method.md` | Bias、RMSE 及模型评估方法 |
+
+RAG 工作流程：
+
+1. 读取 Markdown 知识文档。
+2. 文本分块并生成 Embedding。
+3. 使用 ChromaDB 存储和检索知识片段。
+4. 根据用户问题召回相关内容。
+5. 结合检索证据生成带来源标记的回答。
+
+支持 Top-K 知识检索，默认使用 `top_k=4`。
+
+云端版本支持在向量库缺失时进行初始化，首次知识问答可能需要加载或下载 Embedding 模型，因此响应时间可能较长。
+
+### 3.5 空间可视化
+
+使用 Matplotlib 生成科研分析图表，包括：
+
+- 指定深度声速空间分布
+- 两个数据集之间的 Bias 空间分布
+
+示例：
+
+`画一下CMIP6相对于EN4在1000m的Bias空间分布图`
+
+系统解析问题后调用 `plot_bias_map`，由 Python 完成计算与绘图，再通过 Streamlit 展示生成的图片。
+
+### 3.6 异常处理与日志追踪
+
+系统对工具调用异常进行捕获，并记录执行状态及错误信息。
+
+支持对深度越界、无效变量等异常请求进行反馈，避免在计算条件不满足时生成无依据的结果。
+
+执行日志使用 `run_id` 关联分析过程，记录：
+
+- 用户问题
+- 路由类型
+- 工具名称与调用参数
+- 工具计算结果
+- 执行耗时
+- 执行状态及异常信息
+
+相关日志模块：`logging_utils.py`。
+
+---
+
+## 4. 工具列表
+
+| 工具 | 功能 |
+|---|---|
+| `inspect_dataset` | 查询变量、维度和深度范围 |
+| `extract_depth` | 提取指定深度数据摘要 |
+| `calculate_statistics` | 计算 mean、std、min、max |
+| `compare_datasets` | 计算 Bias、RMSE、Correlation |
+| `plot_map` | 绘制单场空间分布 |
+| `plot_bias_map` | 绘制 Bias 空间分布 |
+
+## 5. 运行示例与验证结果
+
+### 5.1 多深度数值分析
+
+示例问题：
+
+**比较 CMIP6 和 EN4 在 100、500、1000、2000m 的声速差异，判断哪个深度 RMSE 最大。**
+
+一次在线运行得到的结果如下：
+
+| 深度 (m) | Bias (m/s) | RMSE (m/s) | Correlation |
+|---|---:|---:|---:|
+| 100 | +0.33 | 4.14 | 0.991 |
+| 500 | +4.39 | 5.70 | 0.962 |
+| 1000 | +4.83 | 5.92 | 0.913 |
+| 2000 | +3.45 | 4.16 | 0.927 |
+
+**分析结论：** 当前样本中，1000 m 深度的 RMSE 最大，约为 5.92 m/s。
+
+Bias 与 RMSE 使用面积加权计算。上述结果基于项目演示数据，不代表对完整海洋数据产品的总体评估结论。
+
+### 5.2 RAG 知识问答
+
+示例问题：
+
+`为什么声道轴搜索范围设置为100–3000m？`
+
+系统通过 Knowledge 路由检索相关文档，生成包含参考来源标记的中文解释。
+
+### 5.3 空间绘图
+
+示例问题：
+
+`画一下1000m Bias空间分布`
+
+系统调用 `plot_bias_map` 完成数值计算与空间绘图，并在 Streamlit 页面展示结果。
+
+### 5.4 异常请求测试
+
+示例问题：
+
+`比较CMIP6和EN4在9000m的声速差异，并给出RMSE。`
+
+系统能够识别请求深度超出样本数据范围，说明无法计算的原因，不编造 RMSE，并推荐可用深度。
+
+### 5.5 页面截图
+
+**智能体输入界面**
+
+![智能体输入界面](docs/screenshots/ui_input.png)
+
+**分析结果展示**
+
+![智能体分析结果](docs/screenshots/ui_result.png)
+
+---
+
+## 6. 项目结构
 
 ```text
 ocean-data-agent/
-├── app.py                 # Streamlit 界面
-├── agent.py               # LLM + Tool Calling 循环
-├── logging_utils.py       # 可观测性日志
-├── tools/                 # 确定性 Python 工具
+├── app.py                 # Streamlit 页面
+├── agent.py               # LLM Agent 与 Tool Calling
+├── logging_utils.py       # 日志记录
+├── tools/                 # 数值分析工具
 │   ├── dataset_tools.py
 │   ├── statistics_tools.py
 │   ├── comparison_tools.py
-│   └── plot_tools.py
-├── data/                  # 小型样本 NetCDF（可随仓库分发）
-├── outputs/figures/       # 生成图片
-├── logs/                  # agent_runs.jsonl
-├── .env.example           # API 配置模板（勿提交真实 Key）
-├── test_tools.py          # 工具层冒烟测试
-└── requirements.txt
+│   ├── plot_tools.py
+│   └── validation.py
+├── rag/                   # RAG 知识检索
+│   ├── answer.py
+│   ├── embed_model.py
+│   ├── ingest.py
+│   ├── retriever.py
+│   ├── router.py
+│   └── knowledge/
+├── data/                  # NetCDF 样本数据
+├── eval/                  # 评估相关文件
+├── docs/screenshots/      # 演示截图
+├── test_tools.py          # 工具测试
+├── .env.example           # 环境变量配置模板
+├── .gitignore
+├── requirements.txt
+└── README.md
 ```
 
-## 环境准备
+运行过程中还可能生成 `logs/`、`outputs/`、`rag_db/` 等目录，其中部分内容不会提交到代码仓库。
 
-建议使用已有科研环境（含 xarray / matplotlib），并安装：
+## 7. 本地运行
 
-```powershell
+### 7.1 安装依赖
+
+建议使用 Python 3.11 和独立虚拟环境。
+
+```bash
 pip install -r requirements.txt
 ```
 
-### 配置 API（DeepSeek 示例）
+### 7.2 配置模型 API
+
+复制环境变量模板：
 
 ```powershell
 copy .env.example .env
-notepad .env
 ```
 
-`.env` 内容：
+在 `.env` 中配置：
 
-```env
-OPENAI_API_KEY=sk-你的密钥
+```dotenv
+OPENAI_API_KEY=your_api_key
 OPENAI_BASE_URL=https://api.deepseek.com
 OPENAI_MODEL=deepseek-chat
 ```
 
-> 兼容任意 OpenAI 协议接口（通义等只需改 Base URL 与模型名）。  
-> **不要把 `.env` 提交到 Git。**
+项目使用 OpenAI 兼容 API，可以通过修改 Base URL 和模型名称接入相应的兼容服务。
 
-## 快速开始
+**不要将包含真实 API Key 的 `.env` 文件提交至 Git。**
 
-### 1）工具层自测（不需要 API）
+### 7.3 初始化 RAG 知识库
 
-```powershell
+在项目根目录执行：
+
+```bash
+python -m rag.ingest
+```
+
+知识库会根据 `rag/knowledge/` 中的文档建立向量索引。
+
+### 7.4 工具测试
+
+```bash
 python test_tools.py
 ```
 
-### 2）命令行智能体
+### 7.5 启动 Web 应用
+
+```bash
+streamlit run app.py
+```
+
+默认访问地址：
+
+`http://localhost:8501`
+
+也可以使用命令行智能体：
 
 ```powershell
 python agent.py 比较CMIP6和EN4在1000m的声速差异，并给出Bias和RMSE
 ```
 
-### 3）网页界面
+## 8. 设计原则
 
-```powershell
-streamlit run app.py
-```
+1. **LLM 负责推理，Python 负责计算。** 数值分析基于真实工具结果，避免生成未经验证的 RMSE 等指标。
+2. **Tool Calling 驱动执行。** 大模型选择函数并提供参数，Python 工具执行后将结果返回给模型。
+3. **RAG 增强专业问答。** 基于知识片段提供领域背景，并在回答中保留资料引用。
+4. **可观测性。** 通过日志和 `run_id` 追踪路由、工具调用、执行耗时和结果。
+5. **异常处理。** 对不合法参数和工具错误进行反馈，避免失败后编造结果。
+6. **领域专注。** 聚焦海洋声速 NetCDF 分析，明确数据和功能边界。
 
-浏览器打开后输入问题，点击「分析」。
+## 9. 后续规划
 
-示例：`画一下1000m Bias空间分布` → 调用 `plot_bias_map` → Streamlit 展示图片。
+以下为可扩展方向，不代表当前版本已经实现：
 
-### 4）知识库（RAG，基于中期报告）
+- Planner：复杂任务的显式分解和执行规划
+- Reviewer：分析结果合理性检查与重试
+- Docker：容器化部署
+- FastAPI：独立 API 服务接口
+- 更大规模海洋数据的远程读取与分析
 
-知识文档在 `rag/knowledge/`（已从《硕士中期报告-王梦佳》提炼）：
-- `sound_channel.md` 声道轴 100–3000 m、三点二次
-- `interpolation.md` PCHIP / WOA102 / TEOS-10
-- `datasets.md` CMIP6 / EN4 / ORAS5 / MME
-- `cmip6_method.md` Bias/RMSE 与中期评价结论
+---
 
-首次或更新文档后需重建向量库：
+## 10. 在线体验
 
-```powershell
-pip install chromadb sentence-transformers
-python rag/ingest.py
-```
+**🌐 [Ocean Data Agent · Streamlit Demo](https://ocean-data-agent-fi4iarm2xxy9rf8ahpnwz9.streamlit.app)**
 
-然后可问：`为什么声道轴搜索范围设置为100–3000m？`
-
-## 工具一览
-
-| 工具 | 作用 |
-|------|------|
-| `inspect_dataset` | 查看变量/维度/深度 |
-| `extract_depth` | 提取指定深度摘要 |
-| `calculate_statistics` | mean/std/min/max |
-| `compare_datasets` | Bias / RMSE / Correlation |
-| `plot_map` | 单场空间分布图 |
-| `plot_bias_map` | Bias 空间分布图 |
-
-## 典型验证结果（POC）
-
-问题：比较 CMIP6 与 EN4 在 1000 m 的声速差异  
-
-| 指标 | 数值 |
-|------|------|
-| Bias | ≈ +4.83 m/s |
-| RMSE | ≈ 5.92 m/s |
-| Correlation | ≈ 0.91 |
-
-说明：Bias/RMSE 为面积加权（`cos(lat)`），与科研评估脚本逻辑一致。
-
-界面截图见 `docs/screenshots/`。
-
-## 设计原则（面试可讲）
-
-1. **LLM 负责推理，Python 负责计算**：不让大模型直接算 RMSE。  
-2. **Tool Calling**：模型声明要调用的函数与参数，本地执行后把结果回传。  
-3. **Observability**：`logs/agent_runs.jsonl` 记录用户问题、工具名、参数、结果、耗时、成功/失败，并用 `run_id` 串起一次完整会话。  
-4. **异常处理**：变量不存在、深度越界等返回可读错误，由 Agent 用中文说明，而不是直接崩溃。  
-5. **Domain-specific**：只做海洋 NetCDF 声速分析，不做“万能科研 Agent”。
-
-## 后续可扩展（未做则不要写进简历）
-
-- Planner：多深度/多步骤任务拆解  
-- Reviewer：结果合理性检查与重试  
-- Docker 一键运行  
-- FastAPI 服务化  
-
-## 简历可用描述
-
-见 [`docs/resume_snippet.md`](docs/resume_snippet.md)。
+在线 Demo 使用样本数据和云端模型 API。首次访问或模型加载可能存在等待时间，实际响应受网络和平台资源影响。
